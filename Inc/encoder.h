@@ -21,7 +21,7 @@ typedef struct {
   uint32_t lowerThresh;
   uint16_t numWheelSegments;
   uint16_t wheelCircumference;
-  int16_t velocity;
+  float velocity;
   int32_t ticks;
   int32_t last_tick_time;
   int32_t last_tick_amount;

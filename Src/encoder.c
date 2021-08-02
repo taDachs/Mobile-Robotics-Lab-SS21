@@ -51,12 +51,11 @@ void ROB_Encoder_Update(ROB_Encoder_Driver* driver)
     break;
   }
 
-  if ((HAL_GetTick() - driver->last_tick_time) > 500) {
-
+  if ((driver->ticks - driver->last_tick_time) > 5) {
     uint32_t interval = HAL_GetTick() - driver->last_tick_time;
     int32_t num_ticks = driver->ticks - driver->last_tick_amount;
 
-    driver->velocity = (num_ticks / ((float) interval)) * 1000;
+    driver->velocity = driver->velocity * 0.9 + (num_ticks / ((float) interval)) * 1000 * 0.1;
 
     driver->last_tick_amount = driver->ticks;
     driver->last_tick_time = HAL_GetTick();
