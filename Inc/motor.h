@@ -2,26 +2,22 @@
 #define __MOTOR_H__
 
 #include "stm32l4xx_hal.h"
-
-#ifdef __cplusplus
-extern "C" {
-#endif
+#include "gpio_pin.h"
+#include "encoder.h"
 
 typedef struct {
+  ROB_Encoder_Driver* leftEncoder;
+  ROB_Encoder_Driver* rightEncoder;
   volatile uint32_t* leftCCR;
   volatile uint32_t* rightCCR;
-  GPIO_TypeDef* leftGpioBoard;
-  GPIO_TypeDef* rightGpioBoard;
-  uint16_t leftDirectionPin;
-  uint16_t rightDirectionPin;
+  ROB_GPIO_Pin* leftDirectionPin;
+  ROB_GPIO_Pin* rightDirectionPin;
 } ROB_Motor_Driver;
 
-void ROB_Motor_initDriver(ROB_Motor_Driver* driver, TIM_TypeDef* tim, GPIO_TypeDef* leftGpioBoard, GPIO_TypeDef* rightGpioBoard, uint16_t leftDirectionPin, uint16_t rightDirectionPin);
+void ROB_Motor_InitDriver(ROB_Motor_Driver* driver, ROB_Encoder_Driver* left_encoder, ROB_Encoder_Driver* right_encoder, TIM_TypeDef* tim, ROB_GPIO_Pin* leftDirectionPin, ROB_GPIO_Pin* rightDirectionPin);
 
 void ROB_Motor_SetDirVel(ROB_Motor_Driver* driver, float left, float right);
 
-#ifdef __cplusplus
-}
-#endif
+void ROB_Motor_ResetEncoders(ROB_Motor_Driver* driver);
 
 #endif /* __MOTOR_H__*/
