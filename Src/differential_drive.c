@@ -10,7 +10,7 @@
 #include "usart.h"
 #include <stdio.h>
 
-float controlVelocity(float vel, int16_t reference, int16_t measured, float integration_factor);
+float controlVelocity(float vel, float reference, float measured, float integration_factor);
 
 void ROB_Differential_InitDriver(ROB_Differential_Driver* driver, ROB_Motor_Driver* motors, float integration_factor, uint32_t axis_width)
 {
@@ -23,14 +23,15 @@ void ROB_Differential_InitDriver(ROB_Differential_Driver* driver, ROB_Motor_Driv
   driver->referenceVelRight = 0;
   driver->targetDistanceLeft = 0;
   driver->targetDistanceRight = 0;
+  driver->lastTick = HAL_GetTick();
 }
 
-void ROB_Differential_DriveDistance(ROB_Differential_Driver* driver, int32_t distance, int16_t reference_vel)
+void ROB_Differential_DriveDistance(ROB_Differential_Driver* driver, int32_t distance, float reference_vel)
 {
   ROB_Motor_ResetEncoders(driver->motors);
 
-  float left_vel = 0.5;
-  float right_vel = 0.5;
+  float left_vel = 0.2;
+  float right_vel = 0.2;
 
   if (distance < 0)
   {
@@ -56,8 +57,13 @@ void ROB_Differential_DriveDistance(ROB_Differential_Driver* driver, int32_t dis
 
 void ROB_Differential_Update(ROB_Differential_Driver* driver)
 {
-  int16_t left_measured_vel = ROB_Encoder_GetVelocity(driver->motors->leftEncoder);
-  int16_t right_measured_vel = ROB_Encoder_GetVelocity(driver->motors->rightEncoder);
+  if ((HAL_GetTick() - driver->lastTick) < 50) return;
+  driver->lastTick = HAL_GetTick();
+
+  ROB_Encoder_Driver* encoder_left = driver->motors->leftEncoder;
+  ROB_Encoder_Driver* encoder_right =  driver->motors->rightEncoder;
+  int32_t left_measured_vel = encoder_left->wheelCircumference/ encoder_left->numWheelSegments * encoder_left->velocity;
+  int32_t right_measured_vel = encoder_right->wheelCircumference/ encoder_right->numWheelSegments * encoder_right->velocity;
 
   int16_t left_measured_distance = ROB_Encoder_GetDistance(driver->motors->leftEncoder);
   int16_t right_measured_distance = ROB_Encoder_GetDistance(driver->motors->rightEncoder);
@@ -70,6 +76,7 @@ void ROB_Differential_Update(ROB_Differential_Driver* driver)
   else
   {
     driver->currentVelLeft = 0;
+    driver->referenceVelLeft = 0;
   }
 
   if (((driver->targetDistanceRight < 0) && (right_measured_distance > driver->targetDistanceRight))
@@ -80,7 +87,14 @@ void ROB_Differential_Update(ROB_Differential_Driver* driver)
   else
   {
     driver->currentVelRight = 0;
+    driver->referenceVelRight = 0;
   }
+
+//  char string_buf[100];
+//  uint8_t len = sprintf((char*) string_buf, "left_measured: %f, left_set: %f, right_measured: %f, right_set: %f ", left_measured_vel, driver->currentVelLeft, right_measured_vel, driver->currentVelRight);
+//  HAL_UART_Transmit(&huart2, (uint8_t*) string_buf, len, 1000000);
+//  len = sprintf((char*) string_buf, "left_reference: %f, right_reference: %f \n", driver->referenceVelLeft, driver->referenceVelRight);
+//  HAL_UART_Transmit(&huart2, (uint8_t*) string_buf, len, 1000000);
 
   ROB_Motor_SetDirVel(driver->motors, driver->currentVelLeft, driver->currentVelRight);
 }
@@ -95,13 +109,13 @@ uint8_t ROB_Differential_IsDone(ROB_Differential_Driver* driver)
       || ((driver->targetDistanceRight >= 0) && (right_measured_distance < driver->targetDistanceRight))));
 }
 
-float controlVelocity(float vel, int16_t reference, int16_t measured, float integration_factor)
+float controlVelocity(float vel, float reference, float measured, float integration_factor)
 {
     float correction = (reference - measured) * integration_factor;
     return vel + correction;
 }
 
-void ROB_Differential_Rotate(ROB_Differential_Driver* driver, int16_t angle, uint16_t reference_vel)
+void ROB_Differential_Rotate(ROB_Differential_Driver* driver, int16_t angle, float reference_vel)
 {
   ROB_Motor_ResetEncoders(driver->motors);
 

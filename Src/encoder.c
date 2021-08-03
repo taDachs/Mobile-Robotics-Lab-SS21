@@ -7,7 +7,7 @@
 #include "encoder.h"
 #include "usart.h"
 
-void ROB_Encoder_InitDriver(ROB_Encoder_Driver* driver, ROB_Sensors_AnalogSensor* sensor, uint32_t upper_thresh, uint32_t lower_thresh, uint16_t num_wheel_segments, uint16_t wheel_circumference)
+void ROB_Encoder_InitDriver(ROB_Encoder_Driver* driver, ROB_Sensors_AnalogSensor* sensor, uint32_t upper_thresh, uint32_t lower_thresh, int16_t num_wheel_segments, int16_t wheel_circumference)
 {
   driver->sensor = sensor;
   driver->upperThresh = upper_thresh;
@@ -24,10 +24,11 @@ void ROB_Encoder_InitDriver(ROB_Encoder_Driver* driver, ROB_Sensors_AnalogSensor
 
 void ROB_Encoder_Update(ROB_Encoder_Driver* driver)
 {
-  uint32_t value = ROB_Sensors_Read(driver->sensor);
+  uint32_t value = ROB_Sensors_AnalogRead(driver->sensor);
 
   int8_t tick_direction;
-  switch (driver->direction) {
+  switch (driver->direction)
+  {
   case ROB_ENCODER_FORWARD:
     tick_direction = 1;
     break;
@@ -36,26 +37,33 @@ void ROB_Encoder_Update(ROB_Encoder_Driver* driver)
     break;
   }
 
-  switch (driver->state) {
+  switch (driver->state)
+  {
   case ROB_ENCODER_UP:
-    if (value >= driver->upperThresh) {
+    if (value >= driver->upperThresh)
+    {
       driver->ticks += tick_direction;
       driver->state = ROB_ENCODER_DOWN;
     }
     break;
   case ROB_ENCODER_DOWN:
-    if (value <= driver->lowerThresh) {
+    if (value <= driver->lowerThresh)
+    {
       driver->ticks += tick_direction;
       driver->state = ROB_ENCODER_UP;
     }
     break;
   }
 
-  if ((driver->ticks - driver->last_tick_time) > 5) {
+  if ((HAL_GetTick() - driver->last_tick_time) > 50)
+  {
+
     uint32_t interval = HAL_GetTick() - driver->last_tick_time;
     int32_t num_ticks = driver->ticks - driver->last_tick_amount;
 
-    driver->velocity = driver->velocity * 0.9 + (num_ticks / ((float) interval)) * 1000 * 0.1;
+    driver->velocity = (num_ticks / ((float) interval)) * 1000;
+
+
 
     driver->last_tick_amount = driver->ticks;
     driver->last_tick_time = HAL_GetTick();
@@ -65,6 +73,7 @@ void ROB_Encoder_Update(ROB_Encoder_Driver* driver)
 int32_t ROB_Encoder_GetVelocity(ROB_Encoder_Driver* driver)
 {
   float factor = driver->wheelCircumference / (float) driver->numWheelSegments;
+
   return driver->velocity * factor;
 }
 
