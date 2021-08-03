@@ -8,13 +8,13 @@
 #include "sensors.h"
 #include <stdio.h>
 
-void ROB_Sensors_InitSensor(ROB_Sensors_AnalogSensor* sensor, ROB_Sensors_Driver* driver, uint16_t index)
+void ROB_Sensors_InitAnalogSensor(ROB_Sensors_AnalogSensor* sensor, ROB_Sensors_Driver* driver, uint16_t index)
 {
   sensor->driver = driver;
   sensor->index = index;
 }
 
-uint32_t ROB_Sensors_Read(ROB_Sensors_AnalogSensor* sensor)
+uint32_t ROB_Sensors_AnalogRead(ROB_Sensors_AnalogSensor* sensor)
 {
   return sensor->driver->adcBuffer[sensor->index];
 }
@@ -26,6 +26,17 @@ void ROB_Sensors_InitDriver(ROB_Sensors_Driver* driver, volatile uint32_t *adc_b
   driver->leftTouchSensor = left_touch_sensor;
   driver->middleTouchSensor = middle_touch_sensor;
   driver->rightTouchSensor = right_touch_sensor;
+}
+
+void ROB_Sensors_InitLineSensor(ROB_Sensors_LineSensor* sensor, ROB_Sensors_AnalogSensor* analog_sensor, uint32_t thresh)
+{
+  sensor->sensor = analog_sensor;
+  sensor->thresh = thresh;
+}
+
+uint8_t ROB_Sensors_LineRead(ROB_Sensors_LineSensor* sensor)
+{
+  return ROB_Sensors_AnalogRead(sensor->sensor) > sensor->thresh;
 }
 
 void ROB_Sensors_LogSensors(ROB_Sensors_Driver* driver, UART_HandleTypeDef* huart)

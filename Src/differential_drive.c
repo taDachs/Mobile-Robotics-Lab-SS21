@@ -24,6 +24,7 @@ void ROB_Differential_InitDriver(ROB_Differential_Driver* driver, ROB_Motor_Driv
   driver->targetDistanceLeft = 0;
   driver->targetDistanceRight = 0;
   driver->lastTick = HAL_GetTick();
+  driver->running = 0;
 }
 
 void ROB_Differential_DriveDistance(ROB_Differential_Driver* driver, int32_t distance, float reference_vel)
@@ -57,6 +58,7 @@ void ROB_Differential_DriveDistance(ROB_Differential_Driver* driver, int32_t dis
 
 void ROB_Differential_Update(ROB_Differential_Driver* driver)
 {
+  if (!driver->running) return;
   if ((HAL_GetTick() - driver->lastTick) < 50) return;
   driver->lastTick = HAL_GetTick();
 
@@ -148,4 +150,14 @@ void ROB_Differential_Rotate(ROB_Differential_Driver* driver, int16_t angle, flo
   }
 
   ROB_Motor_SetDirVel(driver->motors, driver->currentVelLeft, driver->currentVelRight);
+}
+
+void ROB_Differential_Start(ROB_Differential_Driver* driver)
+{
+  driver->running = 1;
+}
+
+void ROB_Differential_Stop(ROB_Differential_Driver* driver)
+{
+  driver->running = 0;
 }

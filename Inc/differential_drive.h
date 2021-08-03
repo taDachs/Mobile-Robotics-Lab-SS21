@@ -22,6 +22,7 @@ typedef struct {
   int32_t targetDistanceLeft;
   int32_t targetDistanceRight;
   int32_t lastTick;
+  uint8_t running;
 } ROB_Differential_Driver;
 
 void ROB_Differential_InitDriver(ROB_Differential_Driver* driver, ROB_Motor_Driver* motors, float integration_factor, uint32_t axis_width);
@@ -33,6 +34,10 @@ void ROB_Differential_Rotate(ROB_Differential_Driver* driver, int16_t angle, flo
 void ROB_Differential_Update(ROB_Differential_Driver* driver);
 
 uint8_t ROB_Differential_IsDone(ROB_Differential_Driver* driver);
+
+void ROB_Differential_Start(ROB_Differential_Driver* driver);
+
+void ROB_Differential_Stop(ROB_Differential_Driver* driver);
 
 
 #endif /* INC_DIFFERENTIAL_DRIVE_H_ */
