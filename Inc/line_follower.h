@@ -14,6 +14,7 @@
 #include "differential_drive.h"
 
 typedef enum { ROTATE_LEFT, ROTATE_RIGHT, ROTATE_BACK, SEEK, NONE, } ROB_LineFollower_Recovery;
+typedef enum { LEFT, RIGHT, } ROB_LineFollower_LastCurve;
 
 typedef struct {
   ROB_Motor_Driver* motors;
@@ -23,12 +24,14 @@ typedef struct {
   ROB_Sensors_LineSensor* right;
   float leftVel;
   float rightVel;
+  float baseSpeed;
   uint8_t running;
   float factor;
   uint32_t lastTick;
   uint32_t lostSinceTick;
   uint32_t recoveredSinceTick;
   ROB_LineFollower_Recovery recoveryState;
+  ROB_LineFollower_LastCurve lastCurve;
 } ROB_LineFollower_Driver;
 
 void ROB_LineFollower_InitDriver(ROB_LineFollower_Driver* driver, ROB_Motor_Driver* motors, ROB_Differential_Driver* diff_driver, ROB_Sensors_LineSensor* left, ROB_Sensors_LineSensor* middle, ROB_Sensors_LineSensor* right);

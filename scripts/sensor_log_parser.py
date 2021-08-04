@@ -33,3 +33,11 @@ for label in labels:
     path = os.path.join(args.output, f'{label}.png')
     fig.savefig(path)
     print(f'saved data for {path}')
+
+line_sensors = {key: value for (key, value) in data.items() if 'lineSensor' in key}
+
+for (key, value) in line_sensors.items():
+    plt.plot(value, label=key)
+plt.legend()
+plt.savefig(os.path.join(args.output, f'line_sensors.png'))
+
